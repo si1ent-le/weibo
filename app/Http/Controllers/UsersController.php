@@ -33,4 +33,26 @@ class UsersController extends Controller
             session()->flash('success','你已经注册成功了！');
             return redirect()->route('users.show',[$user]);
     }
+    public function edit(User $user)
+    {
+        //创建一个包含变量与其值的数组。
+        return view('users.edit',compact('user'));
+    }
+
+    public function update(User $user , Request $request)
+    {
+        $this->validate($request,[
+            'name' => 'required|max:50',
+            'password' => 'nullable|confirmed|min:6'
+        ]);
+        $data = [];
+        $data['name'] = $request->name;
+       if ($request->password)
+       {
+            $data['password'] = bcrypt($request->password);
+       }
+       $user->update($data);
+       session()->flash('success','资料更新完成！');
+            return redirect()->route('users.show',$user->id);
+    }
 }
