@@ -4,9 +4,20 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use App\Models\User;
+use Auth;
 
 class UsersController extends Controller
 {
+    public function __construct()
+    {
+        $this->middleware('auth',[
+            'except' => ['show','create','store']
+        ]);
+        //只允许未登录账户访问注册页
+        $this->middleware('guest',[
+            'only' => ['create']
+        ]);
+    }
     //
     public function create()
     {
@@ -35,12 +46,14 @@ class UsersController extends Controller
     }
     public function edit(User $user)
     {
+        $this->authorize('update',$user);
         //创建一个包含变量与其值的数组。
         return view('users.edit',compact('user'));
     }
 
     public function update(User $user , Request $request)
     {
+        $this->authorize('update',$user);
         $this->validate($request,[
             'name' => 'required|max:50',
             'password' => 'nullable|confirmed|min:6'
@@ -51,8 +64,8 @@ class UsersController extends Controller
        {
             $data['password'] = bcrypt($request->password);
        }
-       $user->update($data);
-       session()->flash('success','资料更新完成！');
-            return redirect()->route('users.show',$user->id);
+        $user->update($data);
+        session()->flash('success','资料更新完成！');
+        return redirect()->route('users.show',$user->id);
     }
 }
